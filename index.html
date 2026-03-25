@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Three.js FPS - School Edition</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body { margin: 0; background-color: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
+        #info { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 100; }
+    </style>
+</head>
+<body>
+    <div id="info">WASD 移动 | 鼠标点击开始 | 空格跳跃</div>
+
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./three.module.js"
+            }
+        }
+    </script>
+
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from './GLTFLoader.js';
+        import { Octree } from './Octree.js';
+        import { Capsule } from './Capsule.js';
+        import { PointerLockControls } from './PointerLockControls.js';
+
+
+        // 基础场景设置
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0x88ccee );
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+
+        // 这里的路径必须和你上传的 .glb 文件名一致
+        const worldOctree = new Octree();
+        const loader = new GLTFLoader();
+        loader.load( './collision-world.glb', ( gltf ) => {
+            scene.add( gltf.scene );
+            worldOctree.fromGraphNode( gltf.scene );
+            animate();
+        } );
+
+
+        // (此处省略了简化的玩家控制逻辑，确保你从官方 examples/games_fps 获取完整逻辑)
+        function animate() {
+            requestAnimationFrame( animate );
+            renderer.render( scene, camera );
+        }
+    </script>
+</body>
+</html>
