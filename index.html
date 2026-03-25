@@ -1,27 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Three.js FPS - School Edition</title>
+    <title>3D FPS Game - Working Edition</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
         body { margin: 0; background-color: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
-        #info { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 100; }
+        #info { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
-    <div id="info">WASD 移动 | 鼠标点击开始 | 空格跳跃</div>
-
-
+    <div id="info">点击屏幕开始 | WASD 移动 | 鼠标控制 | 空格跳跃</div>
     <script type="importmap">
-        {
-            "imports": {
-                "three": "./three.module.js"
-            }
-        }
+        { "imports": { "three": "./three.module.js" } }
     </script>
-
-
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from './GLTFLoader.js';
@@ -29,18 +20,23 @@
         import { Capsule } from './Capsule.js';
         import { PointerLockControls } from './PointerLockControls.js';
 
-
-        // 基础场景设置
         const scene = new THREE.Scene();
         scene.background = new THREE.Color( 0x88ccee );
-        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 );
         const renderer = new THREE.WebGLRenderer( { antialias: true } );
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
-
-        // 这里的路径必须和你上传的 .glb 文件名一致
         const worldOctree = new Octree();
+        const playerCollider = new Capsule( new THREE.Vector3( 0, 0.35, 0 ), new THREE.Vector3( 0, 1, 0 ), 0.35 );
+        const playerVelocity = new THREE.Vector3();
+        const keyStates = {};
+
+        // 鼠标锁定控制
+        const controls = new PointerLockControls( camera, document.body );
+        document.body.addEventListener( 'mousedown', () => { controls.lock(); } );
+
+        // 加载地图模型
         const loader = new GLTFLoader();
         loader.load( './collision-world.glb', ( gltf ) => {
             scene.add( gltf.scene );
@@ -48,11 +44,20 @@
             animate();
         } );
 
+        document.addEventListener( 'keydown', ( e ) => { keyStates[ e.code ] = true; } );
+        document.addEventListener( 'keyup', ( e ) => { keyStates[ e.code ] = false; } );
 
-        // (此处省略了简化的玩家控制逻辑，确保你从官方 examples/games_fps 获取完整逻辑)
         function animate() {
-            requestAnimationFrame( animate );
+            const deltaTime = 0.016;
+            // 简单的移动逻辑
+            if ( keyStates[ 'KeyW' ] ) playerVelocity.z = -5; else if ( keyStates[ 'KeyS' ] ) playerVelocity.z = 5; else playerVelocity.z = 0;
+            if ( keyStates[ 'KeyA' ] ) playerVelocity.x = -5; else if ( keyStates[ 'KeyD' ] ) playerVelocity.x = 5; else playerVelocity.x = 0;
+            
+            playerCollider.translate( playerVelocity.clone().multiplyScalar( deltaTime ) );
+            camera.position.copy( playerCollider.end );
+            
             renderer.render( scene, camera );
+            requestAnimationFrame( animate );
         }
     </script>
 </body>
